@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Host sign in | Mahadev Niwas</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600&family=Manrope:wght@400;600&display=swap">
+<link rel="stylesheet" href="/assets/mn-admin.css">
+</head>
+<body class="login">
+<main class="login-card">
+  <img src="/images/logo-112.webp" width="64" height="64" alt="Mahadev Niwas logo">
+  <h1>Host dashboard</h1>
+  <p class="muted">Sign in with the owner's Google account to manage bookings.</p>
+  <button class="btn btn-brass" id="go" type="button">Sign in with Google</button>
+  <p class="err" id="err" aria-live="polite"></p>
+</main>
+<script type="module">
+import { auth, ADMIN_EMAIL, google, signOut, onAuthStateChanged } from "/assets/mn-firebase.js";
+const err = document.getElementById("err");
+onAuthStateChanged(auth, async (u) => {
+  if (!u) return;
+  if (u.email === ADMIN_EMAIL && u.emailVerified) location.replace("/admin/dashboard");
+  else { err.textContent = "This account (" + u.email + ") does not have host access."; await signOut(auth); }
+});
+document.getElementById("go").onclick = () => google().catch(() => { err.textContent = "Sign-in was closed or blocked. Allow pop-ups and try again."; });
+</script>
+</body>
+</html>

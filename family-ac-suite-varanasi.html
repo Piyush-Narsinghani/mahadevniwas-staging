@@ -66,6 +66,16 @@ footer a{color:var(--on-night)}footer .links{display:flex;flex-wrap:wrap;gap:8px
 .related a:hover{border-color:var(--brass)}.related small{display:block;font-weight:400;color:var(--muted)}
 table.t{width:100%;border-collapse:collapse;margin-top:14px;font-size:.95rem}table.t th,table.t td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
 table.t th{color:var(--muted);font-weight:600}.tw{overflow-x:auto}
+
+.book{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:22px;scroll-margin-top:16px}
+.bk{display:flex;flex-direction:column;gap:12px}.bk-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.bk label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;font-weight:600;color:var(--muted);flex:1 1 150px;min-width:0}
+.bk input,.bk select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-height:44px;width:100%}
+.bk-status{margin:0;font-weight:600;font-size:.92rem}.bk-status.ok{color:#1f7a4d}.bk-status.bad{color:#a3302a}
+@media (prefers-color-scheme:dark){.bk-status.ok{color:#7fd3a4}.bk-status.bad{color:#f2a39c}}
+.bk-verify{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:10px}.bk-verify p{margin:0}
+.bk-email label{flex:2 1 220px}.linkbtn{background:none;border:0;color:var(--brass-text);text-decoration:underline;cursor:pointer;font:inherit;padding:0 4px}
+.bk button[disabled]{opacity:.5;cursor:not-allowed}.bk-note{margin:0}.bk-done{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
 </style>
 </head>
 <body>
@@ -79,6 +89,7 @@ table.t th{color:var(--muted);font-weight:600}.tw{overflow-x:auto}
 <main class="wrap">
 <div class="gallery"><a href="/images/rooms/r4-1-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r4-1-1600.webp" alt="Spacious AC Family Suite at Mahadev Niwas homestay, Varanasi, photo 1 of 5" loading="eager" decoding="async" width="800" height="600"></a><a href="/images/rooms/r4-3-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r4-3-800.webp" alt="Spacious AC Family Suite at Mahadev Niwas homestay, Varanasi, photo 2 of 5" loading="lazy" decoding="async" width="800" height="600"></a><a href="/images/rooms/r4-2-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r4-2-800.webp" alt="Spacious AC Family Suite at Mahadev Niwas homestay, Varanasi, photo 3 of 5" loading="lazy" decoding="async" width="800" height="600"></a><a href="/images/rooms/r4-5-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r4-5-800.webp" alt="Spacious AC Family Suite at Mahadev Niwas homestay, Varanasi, photo 4 of 5" loading="lazy" decoding="async" width="800" height="600"></a><a href="/images/rooms/r4-4-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r4-4-800.webp" alt="Spacious AC Family Suite at Mahadev Niwas homestay, Varanasi, photo 5 of 5" loading="lazy" decoding="async" width="800" height="600"></a></div>
 <div class="cta"><a class="btn btn-brass" href="https://www.airbnb.co.in/rooms/1337056930228579269" target="_blank" rel="noopener" data-room="4">Check dates on Airbnb →</a><a class="btn btn-ghost" href="https://wa.me/919876954987?text=Hi%2C%20I%20have%20a%20question%20about%20Mahadev%20Niwas" target="_blank" rel="noopener">Ask on WhatsApp</a></div>
+<section class="book" id="book"><h2 style="margin-top:0">Request to book</h2><p class="muted">Verify your email, pick your dates, and we confirm on WhatsApp.</p><div id="book-widget" data-room="4"></div></section>
 <h2>About the Family AC Suite</h2>
 <p>The Family Suite has the most floor space of all six rooms, with a 6×6 ft bed, AC, a private kitchen and a desk nook that works well for laptops and longer stays. It is an Airbnb Guest Favourite and our most-reviewed room.</p>
 <p>It suits families who want room to spread out, and guests who need to work for part of the day. The private bathroom has a geyser, and the room is on the ground floor, which helps with elders and luggage.</p>
@@ -99,5 +110,6 @@ table.t th{color:var(--muted);font-weight:600}.tw{overflow-x:auto}
 <div class="links"><a href="/">Home</a><a href="/homestay-with-kitchen-varanasi">Homestay with a kitchen</a><a href="/family-elderly-stay-varanasi">Families and elderly guests</a><a href="/budget-rooms-varanasi">Budget rooms in Varanasi</a><a href="/long-stays">Long and monthly stays</a><a href="/kashi-vishwanath-darshan-timings">Kashi Vishwanath timings</a><a href="/varanasi-2-day-itinerary">2-day Varanasi itinerary</a><a href="/varanasi-3-day-itinerary">3-day Varanasi itinerary</a><a href="/sarnath-half-day-trip">Sarnath half-day trip</a><a href="/dev-deepawali-2026">Dev Deepawali 2026</a><a href="https://maps.google.com/?cid=7282903325096626393" target="_blank" rel="noopener">Google Maps</a></div>
 </div></footer>
 <script>document.querySelectorAll('[data-room]').forEach(function(a){a.addEventListener('click',function(){if(window.gtag)gtag('event','airbnb_click',{room:a.dataset.room});});});document.querySelectorAll('a[href^="https://wa.me"]').forEach(function(a){a.addEventListener('click',function(){if(window.gtag)gtag('event','whatsapp_click',{page:'family-ac-suite-varanasi'});});});</script>
+<script type="module" src="/assets/mn-book.js"></script>
 </body>
 </html>

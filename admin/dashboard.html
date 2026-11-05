@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Host Dashboard | Mahadev Niwas</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600&family=Manrope:wght@400;600&display=swap">
+<link rel="stylesheet" href="/assets/mn-admin.css">
+</head>
+<body>
+<header class="top"><div class="in">
+  <h1>Mahadev Niwas · Host</h1><span class="tag-stg" id="env">Staging</span><span class="sp"></span>
+  <span id="who" class="muted" style="color:#b9b5ab;font-size:.82rem"></span>
+  <button class="btn btn-sm" id="out" type="button">Sign out</button>
+</div></header>
+<div class="kpis" style="max-width:1180px;margin:16px auto;padding-inline:max(16px,env(safe-area-inset-left,0px))">
+  <div class="kpi"><b id="k-req">–</b><span>New requests</span></div>
+  <div class="kpi"><b id="k-conf">–</b><span>Confirmed, advance pending</span></div>
+  <div class="kpi"><b id="k-paid">–</b><span>Paid, upcoming</span></div>
+  <div class="kpi"><b id="k-in">–</b><span>Check-ins next 7 days</span></div>
+</div>
+<nav class="tabs" role="tablist">
+  <button role="tab" aria-selected="true" data-tab="t-req">Bookings</button>
+  <button role="tab" aria-selected="false" data-tab="t-cal">Calendar</button>
+  <button role="tab" aria-selected="false" data-tab="t-add">Add booking</button>
+  <button role="tab" aria-selected="false" data-tab="t-blk">Block dates</button>
+</nav>
+<main class="dash">
+  <section class="panel" id="t-req">
+    <div class="toolbar">
+      <label for="f-status">Status<select id="f-status"><option value="">All active</option><option>requested</option><option>confirmed</option><option>paid</option><option>declined</option><option>cancelled</option><option value="all">Everything</option></select></label>
+      <label for="f-q">Search<input id="f-q" placeholder="Name, phone, email"></label>
+      <span class="sp" style="flex:1"></span>
+      <button class="btn" id="csv" type="button">Export CSV</button>
+    </div>
+    <div class="tw"><table><thead><tr><th>Status</th><th>Room</th><th>Dates</th><th>Guest</th><th>Contact</th><th>Verified</th><th>Actions</th></tr></thead><tbody id="rows"><tr><td colspan="7" class="empty">Loading bookings…</td></tr></tbody></table></div>
+  </section>
+  <section class="panel" id="t-cal" hidden>
+    <div class="toolbar"><label for="c-from">From<input id="c-from" type="date"></label></div>
+    <div class="tw"><div class="cal" id="cal"></div></div>
+    <div class="legend"><span><i style="background:var(--brass)"></i>Booked (confirmed/paid)</span><span><i style="background:var(--info-bg);border-color:var(--info)"></i>Request</span><span><i style="background:#e0525222;border-color:var(--bad)"></i>Airbnb</span><span><i class="mb" style="background:repeating-linear-gradient(45deg,var(--line) 0 4px,transparent 4px 8px)"></i>Blocked</span></div>
+  </section>
+  <section class="panel" id="t-add" hidden>
+    <p class="muted">For WhatsApp or phone bookings. Saved as confirmed and blocks the dates.</p>
+    <form class="inline" id="add">
+      <label for="a-room">Room<select id="a-room"></select></label>
+      <label for="a-in">Check-in<input id="a-in" type="date" required></label>
+      <label for="a-out">Check-out<input id="a-out" type="date" required></label>
+      <label for="a-g">Guests<select id="a-g"><option>1</option><option selected>2</option><option>3</option></select></label>
+      <label for="a-name">Guest name<input id="a-name" required></label>
+      <label for="a-phone">Phone<input id="a-phone" type="tel" required></label>
+      <label for="a-note">Note<input id="a-note" placeholder="Advance, ID seen…"></label>
+      <button class="btn btn-brass" type="submit">Save booking</button>
+    </form>
+    <p class="muted" id="a-msg" aria-live="polite"></p>
+  </section>
+  <section class="panel" id="t-blk" hidden>
+    <form class="inline" id="blk">
+      <label for="b-room">Room<select id="b-room"></select></label>
+      <label for="b-from">From<input id="b-from" type="date" required></label>
+      <label for="b-to">Until (checkout day)<input id="b-to" type="date" required></label>
+      <label for="b-kind">Type<select id="b-kind"><option value="block">Blocked (maintenance, family)</option><option value="airbnb">Airbnb booking</option></select></label>
+      <label for="b-reason">Reason<input id="b-reason" placeholder="Optional"></label>
+      <button class="btn btn-brass" type="submit">Block dates</button>
+    </form>
+    <div class="tw" style="margin-top:16px"><table><thead><tr><th>Room</th><th>From</th><th>Until</th><th>Type</th><th>Reason</th><th></th></tr></thead><tbody id="brows"></tbody></table></div>
+  </section>
+</main>
+<script type="module">
+import { auth, db, ADMIN_EMAIL, ROOMS, roomName, today, addDays, nights, signOut, onAuthStateChanged,
+  collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from "/assets/mn-firebase.js";
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = (s) => new Date(s + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+let bookings = [], busy = [], blocks = [];
+if (location.hostname === "mahadevniwas.com") $("env").hidden = true;
+
+onAuthStateChanged(auth, (u) => {
+  if (!u || u.email !== ADMIN_EMAIL || !u.emailVerified) { location.replace("/admin/"); return; }
+  $("who").textContent = u.email; start();
+});
+$("out").onclick = () => signOut(auth).then(() => location.replace("/admin/"));
+
+document.querySelectorAll("nav.tabs button").forEach((b) => b.onclick = () => {
+  document.querySelectorAll("nav.tabs button").forEach((x) => x.setAttribute("aria-selected", x === b));
+  document.querySelectorAll("main .panel").forEach((p) => p.hidden = p.id !== b.dataset.tab);
+});
+[$("a-room"), $("b-room")].forEach((s) => s.innerHTML = ROOMS.map((r) => `<option value="${r.no}">${r.name}</option>`).join(""));
+$("c-from").value = today(); $("a-in").value = today(); $("a-out").value = addDays(today(), 1); $("b-from").value = today(); $("b-to").value = addDays(today(), 1);
+
+function start() {
+  onSnapshot(query(collection(db, "bookings"), orderBy("checkin")), (s) => { bookings = s.docs.map((d) => ({ id: d.id, ...d.data() })); render(); }, (e) => $("rows").innerHTML = `<tr><td colspan="7" class="empty">Could not load bookings: ${esc(e.message)}</td></tr>`);
+  onSnapshot(collection(db, "busy"), (s) => { busy = s.docs.map((d) => ({ id: d.id, ...d.data() })); render(); });
+  onSnapshot(collection(db, "blocks"), (s) => { blocks = s.docs.map((d) => ({ id: d.id, ...d.data() })); renderBlocks(); render(); });
+}
+const overl = (a1, a2, b1, b2) => a1 < b2 && b1 < a2;
+const clashes = (b) => busy.filter((x) => x.id !== b.id && x.room === b.room && overl(b.checkin, b.checkout, x.from, x.to));
+
+function render() {
+  const t = today(), wk = addDays(t, 7);
+  $("k-req").textContent = bookings.filter((b) => b.status === "requested").length;
+  $("k-conf").textContent = bookings.filter((b) => b.status === "confirmed" && b.checkout >= t).length;
+  $("k-paid").textContent = bookings.filter((b) => b.status === "paid" && b.checkout >= t).length;
+  $("k-in").textContent = bookings.filter((b) => ["confirmed", "paid"].includes(b.status) && b.checkin >= t && b.checkin <= wk).length;
+  const st = $("f-status").value, q = $("f-q").value.trim().toLowerCase();
+  const list = bookings.filter((b) => (st === "all" ? true : st ? b.status === st : !["declined", "cancelled"].includes(b.status) && b.checkout >= t))
+    .filter((b) => !q || [b.name, b.phone, b.email].join(" ").toLowerCase().includes(q));
+  $("rows").innerHTML = list.length ? list.map((b) => {
+    const c = ["requested", "confirmed"].includes(b.status) ? clashes(b) : [];
+    const wa = "https://wa.me/" + String(b.phone).replace(/\D/g, "").replace(/^(\d{10})$/, "91$1");
+    const acts = {
+      requested: `<button class="btn btn-sm btn-brass" data-a="confirm" data-id="${b.id}">Confirm</button><button class="btn btn-sm" data-a="decline" data-id="${b.id}">Decline</button>`,
+      confirmed: `<button class="btn btn-sm btn-brass" data-a="paid" data-id="${b.id}">Mark advance paid</button><button class="btn btn-sm" data-a="cancel" data-id="${b.id}">Cancel</button>`,
+      paid: `<button class="btn btn-sm" data-a="cancel" data-id="${b.id}">Cancel</button>`
+    }[b.status] || `<button class="btn btn-sm" data-a="reopen" data-id="${b.id}">Reopen</button>`;
+    return `<tr><td><span class="pill s-${esc(b.status)}">${esc(b.status)}</span></td><td>${esc(roomName(b.room))}</td>
+      <td>${fmt(b.checkin)} → ${fmt(b.checkout)}<br><span class="muted">${nights(b.checkin, b.checkout)} nights · ${esc(b.guests)} guests</span>${c.length ? `<span class="warn-line">⚠ Clashes with ${c.map((x) => x.kind).join(", ")}</span>` : ""}</td>
+      <td class="wrap"><b>${esc(b.name)}</b><br><span class="muted">${esc(b.source)}${b.note ? " · " + esc(b.note) : ""}</span></td>
+      <td><a href="${wa}" target="_blank" rel="noopener">${esc(b.phone)}</a><br><span class="muted">${esc(b.email || "")}</span></td>
+      <td>${b.source === "website" ? "✓ " + esc(b.verifiedBy === "google.com" ? "Google" : "Email") : "Host added"}</td>
+      <td><div class="acts">${acts}</div></td></tr>`;
+  }).join("") : `<tr><td colspan="7" class="empty">No bookings here yet. Requests from the website appear instantly.</td></tr>`;
+  renderCal();
+}
+$("f-status").onchange = render; $("f-q").oninput = render; $("c-from").onchange = renderCal;
+
+async function setStatus(id, status) {
+  const b = bookings.find((x) => x.id === id); if (!b) return;
+  if (["confirm", "paid"].includes(status) && clashes(b).length && !confirmClash()) return;
+  const map = { confirm: "confirmed", paid: "paid", decline: "declined", cancel: "cancelled", reopen: "requested" };
+  await updateDoc(doc(db, "bookings", id), { status: map[status], updated: serverTimestamp() });
+  if (["confirm", "paid"].includes(status)) await setDoc(doc(db, "busy", id), { room: b.room, from: b.checkin, to: b.checkout, kind: "booking" });
+  else await deleteDoc(doc(db, "busy", id)).catch(() => {});
+}
+let clashOk = false; function confirmClash() { if (clashOk) { clashOk = false; return true; } toast("These dates clash. Click again to confirm anyway."); clashOk = true; setTimeout(() => clashOk = false, 4000); return false; }
+$("rows").addEventListener("click", (e) => { const t = e.target.closest("button[data-a]"); if (t) { t.disabled = true; setStatus(t.dataset.id, t.dataset.a).catch((er) => toast("Could not update: " + er.message)).finally(() => t.disabled = false); } });
+
+$("add").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const b = { room: $("a-room").value, checkin: $("a-in").value, checkout: $("a-out").value, guests: Number($("a-g").value), name: $("a-name").value.trim(), phone: $("a-phone").value.trim(), note: $("a-note").value.trim() };
+  if (b.checkout <= b.checkin) { $("a-msg").textContent = "Check-out must be after check-in."; return; }
+  if (busy.some((x) => x.room === b.room && overl(b.checkin, b.checkout, x.from, x.to))) { $("a-msg").textContent = "Those dates are already taken for this room."; return; }
+  const ref = await addDoc(collection(db, "bookings"), { ...b, email: "", uid: "", status: "confirmed", source: "whatsapp", verifiedBy: "host", created: serverTimestamp() });
+  await setDoc(doc(db, "busy", ref.id), { room: b.room, from: b.checkin, to: b.checkout, kind: "booking" });
+  $("a-msg").textContent = "Saved."; e.target.reset(); $("a-in").value = today(); $("a-out").value = addDays(today(), 1);
+});
+$("blk").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const b = { room: $("b-room").value, from: $("b-from").value, to: $("b-to").value, kind: $("b-kind").value, reason: $("b-reason").value.trim() };
+  if (b.to <= b.from) { toast("'Until' must be after 'From'."); return; }
+  const ref = await addDoc(collection(db, "blocks"), { ...b, created: serverTimestamp() });
+  await setDoc(doc(db, "busy", "blk_" + ref.id), { room: b.room, from: b.from, to: b.to, kind: b.kind });
+  toast("Dates blocked.");
+});
+function renderBlocks() {
+  $("brows").innerHTML = blocks.length ? blocks.sort((a, b) => a.from < b.from ? -1 : 1).map((b) => `<tr><td>${esc(roomName(b.room))}</td><td>${fmt(b.from)}</td><td>${fmt(b.to)}</td><td>${esc(b.kind)}</td><td class="wrap">${esc(b.reason)}</td><td><button class="btn btn-sm" data-rm="${b.id}">Remove</button></td></tr>`).join("") : `<tr><td colspan="6" class="empty">No blocked dates.</td></tr>`;
+}
+$("brows").addEventListener("click", async (e) => { const t = e.target.closest("button[data-rm]"); if (!t) return; await deleteDoc(doc(db, "blocks", t.dataset.rm)); await deleteDoc(doc(db, "busy", "blk_" + t.dataset.rm)).catch(() => {}); });
+
+function renderCal() {
+  const from = $("c-from").value || today(), days = 30;
+  const head = `<div></div>` + Array.from({ length: days }, (_, i) => { const d = new Date(addDays(from, i) + "T00:00:00"); return `<div class="h">${d.getDate()}<br>${d.toLocaleDateString("en-IN", { weekday: "narrow" })}</div>`; }).join("");
+  const rows = ROOMS.map((r) => `<div class="rn">${r.name}</div>` + Array.from({ length: days }, (_, i) => {
+    const day = addDays(from, i), nx = addDays(day, 1);
+    const b = busy.find((x) => x.room === r.no && overl(day, nx, x.from, x.to));
+    const rq = bookings.find((x) => x.room === r.no && x.status === "requested" && overl(day, nx, x.checkin, x.checkout));
+    const cls = b ? (b.kind === "airbnb" ? "ab" : b.kind === "block" ? "mb" : "bk") : rq ? "rq" : "";
+    const tip = b ? (b.kind === "booking" ? (bookings.find((x) => x.id === b.id) || {}).name || "Booked" : b.kind) : rq ? "Request: " + rq.name : "Free";
+    return `<div class="c ${cls}" title="${esc(r.name)} · ${day} · ${esc(tip)}"></div>`;
+  }).join("")).join("");
+  $("cal").style.gridTemplateColumns = `minmax(120px,auto) repeat(${days}, minmax(26px,1fr))`;
+  $("cal").innerHTML = head + rows;
+}
+
+$("csv").onclick = () => {
+  const rows = [["Ref", "Status", "Room", "Check-in", "Check-out", "Nights", "Guests", "Name", "Phone", "Email", "Source", "Verified", "Note"]]
+    .concat(bookings.map((b) => [b.id, b.status, roomName(b.room), b.checkin, b.checkout, nights(b.checkin, b.checkout), b.guests, b.name, b.phone, b.email, b.source, b.verifiedBy, b.note]));
+  const csv = rows.map((r) => r.map((c) => { c = String(c ?? ""); return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c; }).join(",")).join("\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "mahadev-niwas-bookings-" + today() + ".csv"; a.click();
+};
+function toast(m) { const t = document.createElement("div"); t.className = "toast"; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 3200); }
+</script>
+</body>
+</html>

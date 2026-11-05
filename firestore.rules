@@ -1,0 +1,42 @@
+rules_version = '2';
+// Mahadev Niwas bookings. Guests must have a verified email (email link or Google) to create a request.
+// Only the owner account can read all bookings, change status or block dates.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'piyushnarsinghani13@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+    function verifiedGuest() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function validRequest(d) {
+      return d.keys().hasOnly(['room','checkin','checkout','guests','name','phone','email','uid','status','source','note','created','verifiedBy'])
+        && d.room in ['1','2','3','4','5','6']
+        && d.guests is int && d.guests >= 1 && d.guests <= 3
+        && d.checkin is string && d.checkout is string && d.checkout > d.checkin
+        && d.name is string && d.name.size() > 1 && d.name.size() <= 80
+        && d.phone is string && d.phone.size() >= 10 && d.phone.size() <= 20;
+    }
+    match /bookings/{id} {
+      allow read: if isAdmin() || (request.auth != null && resource.data.uid == request.auth.uid);
+      allow create: if isAdmin()
+        || (verifiedGuest()
+            && validRequest(request.resource.data)
+            && request.resource.data.uid == request.auth.uid
+            && request.resource.data.email == request.auth.token.email
+            && request.resource.data.status == 'requested'
+            && request.resource.data.source == 'website');
+      allow update, delete: if isAdmin();
+    }
+    // Public availability: dates only, no guest details.
+    match /busy/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /blocks/{id} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
