@@ -68,14 +68,26 @@ table.t{width:100%;border-collapse:collapse;margin-top:14px;font-size:.95rem}tab
 table.t th{color:var(--muted);font-weight:600}.tw{overflow-x:auto}
 
 .book{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:22px;scroll-margin-top:16px}
-.bk{display:flex;flex-direction:column;gap:12px}.bk-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
-.bk label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;font-weight:600;color:var(--muted);flex:1 1 150px;min-width:0}
-.bk input,.bk select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-height:44px;width:100%}
-.bk-status{margin:0;font-weight:600;font-size:.92rem}.bk-status.ok{color:#1f7a4d}.bk-status.bad{color:#a3302a}
-@media (prefers-color-scheme:dark){.bk-status.ok{color:#7fd3a4}.bk-status.bad{color:#f2a39c}}
-.bk-verify{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:10px}.bk-verify p{margin:0}
-.bk-email label{flex:2 1 220px}.linkbtn{background:none;border:0;color:var(--brass-text);text-decoration:underline;cursor:pointer;font:inherit;padding:0 4px}
-.bk button[disabled]{opacity:.5;cursor:not-allowed}.bk-note{margin:0}.bk-done{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;gap:10px}.cal-arrow{min-height:40px;padding:0 14px;font-size:1.2rem}
+.cal-help{font-size:.85rem;color:var(--muted)}
+.cal-months{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin-top:12px}@media(min-width:640px){.cal-months{grid-template-columns:1fr 1fr}}
+.cal-title{font:600 1.15rem/1.2 var(--display);text-align:center;margin-bottom:8px}
+.cal-g{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-dow{text-align:center;font-size:.72rem;color:var(--muted);font-weight:600}
+.cal-d{aspect-ratio:1;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:600 .88rem/1 var(--body);cursor:pointer;font-variant-numeric:tabular-nums}
+.cal-d.free:hover{border-color:var(--brass)}.cal-d.past{opacity:.3;cursor:default;border-color:transparent}
+.cal-d.off{background:repeating-linear-gradient(135deg,var(--line) 0 3px,transparent 3px 7px);color:var(--muted);text-decoration:line-through;cursor:not-allowed}
+.cal-d.off:not([disabled]){cursor:pointer}
+.cal-d.sel{background:color-mix(in srgb,var(--brass) 28%,transparent);border-color:var(--brass);text-decoration:none;color:var(--ink)}
+.cal-d.s,.cal-d.e{background:var(--brass);color:var(--brass-ink)}
+.cal-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-top:12px}
+.lg{display:inline-block;width:13px;height:13px;border-radius:4px;vertical-align:-2px;margin-right:5px;border:1px solid var(--line)}
+.lg.free{background:var(--bg)}.lg.off{background:repeating-linear-gradient(135deg,var(--line) 0 3px,transparent 3px 7px)}.lg.sel{background:var(--brass)}
+.cal-pick{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+.cal-sum{margin:0;flex:1 1 240px}.cal-pick label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;font-weight:600;color:var(--muted)}
+.cal-pick select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-height:44px}
+.linkbtn{background:none;border:0;color:var(--brass-text);text-decoration:underline;cursor:pointer;font:inherit;padding:0 4px}
+.cal-cta{margin-top:14px}
 </style>
 </head>
 <body>
@@ -89,7 +101,7 @@ table.t th{color:var(--muted);font-weight:600}.tw{overflow-x:auto}
 <main class="wrap">
 <div class="gallery"><a href="/images/rooms/r6-n7-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r6-n7-1600.webp" alt="Roomy AC Suite at Mahadev Niwas homestay, Varanasi, photo 1 of 11" loading="eager" decoding="async" width="800" height="600"></a><a href="/images/rooms/r6-3-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r6-3-800.webp" alt="Roomy AC Suite at Mahadev Niwas homestay, Varanasi, photo 2 of 11" loading="lazy" decoding="async" width="800" height="600"></a><a href="/images/rooms/r6-2-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r6-2-800.webp" alt="Roomy AC Suite at Mahadev Niwas homestay, Varanasi, photo 3 of 11" loading="lazy" decoding="async" width="800" height="600"></a><a href="/images/rooms/r6-n1-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r6-n1-800.webp" alt="Roomy AC Suite at Mahadev Niwas homestay, Varanasi, photo 4 of 11" loading="lazy" decoding="async" width="800" height="600"></a><a href="/images/rooms/r6-4-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r6-4-800.webp" alt="Roomy AC Suite at Mahadev Niwas homestay, Varanasi, photo 5 of 11" loading="lazy" decoding="async" width="800" height="600"></a><a href="/images/rooms/r6-1-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r6-1-800.webp" alt="Roomy AC Suite at Mahadev Niwas homestay, Varanasi, photo 6 of 11" loading="lazy" decoding="async" width="800" height="600"></a><a href="/images/rooms/r6-n2-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r6-n2-800.webp" alt="Roomy AC Suite at Mahadev Niwas homestay, Varanasi, photo 7 of 11" loading="lazy" decoding="async" width="800" height="600"></a><a href="/images/rooms/r6-n3-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r6-n3-800.webp" alt="Roomy AC Suite at Mahadev Niwas homestay, Varanasi, photo 8 of 11" loading="lazy" decoding="async" width="800" height="600"></a><a href="/images/rooms/r6-n4-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r6-n4-800.webp" alt="Roomy AC Suite at Mahadev Niwas homestay, Varanasi, photo 9 of 11" loading="lazy" decoding="async" width="800" height="600"></a><a href="/images/rooms/r6-n5-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r6-n5-800.webp" alt="Roomy AC Suite at Mahadev Niwas homestay, Varanasi, photo 10 of 11" loading="lazy" decoding="async" width="800" height="600"></a><a href="/images/rooms/r6-n6-1600.webp" target="_blank" rel="noopener"><img src="/images/rooms/r6-n6-800.webp" alt="Roomy AC Suite at Mahadev Niwas homestay, Varanasi, photo 11 of 11" loading="lazy" decoding="async" width="800" height="600"></a></div>
 <div class="cta"><a class="btn btn-brass" href="https://www.airbnb.co.in/rooms/1337043712766653017" target="_blank" rel="noopener" data-room="6">Check dates on Airbnb →</a><a class="btn btn-ghost" href="https://wa.me/919876954987?text=Hi%2C%20I%20have%20a%20question%20about%20Mahadev%20Niwas" target="_blank" rel="noopener">Ask on WhatsApp</a></div>
-<section class="book" id="book"><h2 style="margin-top:0">Request to book</h2><p class="muted">Verify your email, pick your dates, and we confirm on WhatsApp.</p><div id="book-widget" data-room="6"></div></section>
+<section class="book" id="book"><h2 style="margin-top:0">Check availability</h2><p class="muted">Live calendar. Pick your dates, then book on Airbnb or message us on WhatsApp.</p><div id="book-widget" data-room="6"></div></section>
 <h2>About the Roomy AC Suite</h2>
 <p>The Roomy AC Suite has a 6×6 ft bed, AC, a wall TV and a private kitchen with an induction cooktop, pressure cooker and utensils. Its bathroom is larger than in our compact rooms and has a geyser.</p>
 <p>Guests staying a week or more often pick this room for the kitchen space. It is on the ground floor in a quiet residential colony, 15–20 minutes from the ghats.</p>

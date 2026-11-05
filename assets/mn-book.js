@@ -1,88 +1,83 @@
-// "Request to book" widget for room pages. Usage: <div id="book-widget" data-room="3"></div>
-// A request is only created after the guest verifies their email (Google or email link).
-import { auth, RULES, roomName, today, addDays, nights, busyFor, clash, google, sendEmailLink, finishEmailLink, createRequest, onAuthStateChanged, signOut } from "/assets/mn-firebase.js";
+// Availability calendar for room pages. Usage: <div id="book-widget" data-room="3"></div>
+// Guests pick dates on a live calendar (Airbnb + direct bookings), then book on Airbnb or WhatsApp.
+import { roomName, today, addDays, nights, busyFor } from "/assets/mn-firebase.js";
 
+const AIRBNB = { "3": "1337026475284159269", "4": "1337056930228579269", "6": "1337043712766653017", "5": "1337059087112427101", "1": "1339101345497451595", "2": "1339104264281029729" };
+const WA = "919876954987";
 const el = document.getElementById("book-widget");
 if (el) init();
 
 function init() {
-  const room = el.dataset.room, t = today(), PKEY = "mn-pending-" + room;
-  let pending = {}; try { pending = JSON.parse(localStorage.getItem(PKEY) || "{}"); } catch (e) {}
-  const v = (k, d) => pending[k] || d;
+  const room = el.dataset.room, t = today();
+  let busy = [], start = null, end = null, view = t.slice(0, 7); // YYYY-MM
   el.innerHTML = `
-  <form class="bk" novalidate>
-    <div class="bk-row">
-      <label for="bk-in">Check-in<input id="bk-in" type="date" required min="${t}" value="${v("checkin", addDays(t, 1))}"></label>
-      <label for="bk-out">Check-out<input id="bk-out" type="date" required min="${addDays(t, 1)}" value="${v("checkout", addDays(t, 2))}"></label>
-      <label for="bk-g">Guests<select id="bk-g"><option value="1">1</option><option value="2" selected>2</option><option value="3">3 (1 extra, charged)</option></select></label>
+  <div class="cal-wrap">
+    <div class="cal-nav"><button type="button" class="btn btn-ghost cal-arrow" id="cal-prev" aria-label="Previous month">‹</button>
+      <span class="cal-help" id="cal-help">Loading availability…</span>
+      <button type="button" class="btn btn-ghost cal-arrow" id="cal-next" aria-label="Next month">›</button></div>
+    <div class="cal-months" id="cal-months"></div>
+    <div class="cal-legend"><span><i class="lg free"></i>Available</span><span><i class="lg off"></i>Booked</span><span><i class="lg sel"></i>Your dates</span></div>
+    <div class="cal-pick">
+      <p class="cal-sum" id="cal-sum" aria-live="polite">Tap your check-in date.</p>
+      <label for="cal-g">Guests<select id="cal-g"><option value="1">1</option><option value="2" selected>2</option><option value="3">3 (1 extra, charged)</option></select></label>
     </div>
-    <p class="bk-status" id="bk-status" aria-live="polite">Checking dates…</p>
-    <div class="bk-row">
-      <label for="bk-name">Your name<input id="bk-name" autocomplete="name" required value="${esc(v("name", ""))}"></label>
-      <label for="bk-phone">WhatsApp number<input id="bk-phone" type="tel" autocomplete="tel" required placeholder="+91" value="${esc(v("phone", ""))}"></label>
+    <div class="cta cal-cta">
+      <a class="btn btn-brass" id="go-ab" target="_blank" rel="noopener" data-room="${room}">Book on Airbnb →</a>
+      <a class="btn btn-ghost" id="go-wa" target="_blank" rel="noopener">Book on WhatsApp</a>
     </div>
-    <div class="bk-verify" id="bk-verify"></div>
-    <button class="btn btn-brass" id="bk-send" type="submit" disabled>Send booking request</button>
-    <p class="muted bk-note">No payment now. We confirm on WhatsApp, then you pay the full amount by UPI to hold the room. Bookings are non-refundable. <a href="/booking-policy">Booking policy</a>.</p>
-  </form>`;
+  </div>`;
   const $ = (id) => document.getElementById(id);
-  if (pending.guests) $("bk-g").value = pending.guests;
-  let busy = [], user = null, datesOk = false;
+  const isBusy = (d) => busy.some((b) => b.from <= d && d < b.to); // night of d is taken
+  const rangeFree = (a, b) => { for (let d = a; d < b; d = addDays(d, 1)) if (isBusy(d)) return false; return true; };
+  const monthAdd = (ym, n) => { const [y, m] = ym.split("-").map(Number); const d = new Date(Date.UTC(y, m - 1 + n, 1)); return d.toISOString().slice(0, 7); };
+  const label = (ym) => new Date(ym + "-01T00:00:00").toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+  const fmt = (d) => new Date(d + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" });
 
-  const form = () => ({ room, checkin: $("bk-in").value, checkout: $("bk-out").value, guests: $("bk-g").value, name: $("bk-name").value.trim(), phone: $("bk-phone").value.trim() });
-  const savePending = () => { try { localStorage.setItem(PKEY, JSON.stringify(form())); } catch (e) {} };
-  const setStatus = (cls, txt) => { const s = $("bk-status"); s.className = "bk-status " + cls; s.textContent = txt; };
-  const refresh = () => { $("bk-send").disabled = !(datesOk && user && user.emailVerified); };
-
-  function checkDates() {
-    const f = form(), n = nights(f.checkin, f.checkout);
-    if (!f.checkin || !f.checkout || n < 1) { datesOk = false; setStatus("bad", "Check-out must be after check-in."); return refresh(); }
-    if (clash(busy, f.checkin, f.checkout).length) { datesOk = false; setStatus("bad", "Not available for these dates. Try other dates or another room."); return refresh(); }
-    datesOk = true; setStatus("ok", `Available: ${n} night${n > 1 ? "s" : ""}. Price is confirmed on WhatsApp.`); refresh();
-  }
-  ["bk-in", "bk-out"].forEach((id) => $(id).addEventListener("change", () => { if ($("bk-out").value <= $("bk-in").value) $("bk-out").value = addDays($("bk-in").value, 1); checkDates(); savePending(); }));
-  ["bk-g", "bk-name", "bk-phone"].forEach((id) => $(id).addEventListener("change", savePending));
-
-  function renderVerify() {
-    const box = $("bk-verify");
-    if (user && user.emailVerified) {
-      box.innerHTML = `<p class="bk-ok">✓ Verified as <b>${esc(user.email)}</b> <button type="button" class="linkbtn" id="bk-out-btn">Use another email</button></p>`;
-      $("bk-out-btn").onclick = () => signOut(auth);
-    } else {
-      box.innerHTML = `<p class="bk-vt"><b>Verify your email to send the request</b></p>
-        <div class="bk-row"><button type="button" class="btn" id="bk-google">Continue with Google</button></div>
-        <div class="bk-row bk-email"><label for="bk-email">Or get a link by email<input id="bk-email" type="email" autocomplete="email" placeholder="you@example.com"></label><button type="button" class="btn" id="bk-link">Email me a link</button></div>
-        <p class="muted" id="bk-vmsg" aria-live="polite"></p>`;
-      $("bk-google").onclick = async () => { savePending(); try { await google(); } catch (e) { $("bk-vmsg").textContent = "Google sign-in was closed or blocked. Try again or use the email link."; } };
-      $("bk-link").onclick = async () => {
-        const email = $("bk-email").value.trim();
-        if (!/^\S+@\S+\.\S+$/.test(email)) { $("bk-vmsg").textContent = "Please enter a valid email address."; return; }
-        savePending();
-        try { await sendEmailLink(email, location.origin + location.pathname + "#book"); $("bk-vmsg").textContent = "Link sent. Open it on this device to verify, then send your request."; }
-        catch (e) { $("bk-vmsg").textContent = "Could not send the link. Please try again in a minute."; }
-      };
+  function month(ym) {
+    const first = new Date(ym + "-01T00:00:00"), lead = (first.getDay() + 6) % 7, days = new Date(first.getFullYear(), first.getMonth() + 1, 0).getDate();
+    let h = `<div class="cal-m"><div class="cal-title">${label(ym)}</div><div class="cal-g">` + ["M", "T", "W", "T", "F", "S", "S"].map((x) => `<span class="cal-dow">${x}</span>`).join("") + "<span></span>".repeat(lead);
+    for (let i = 1; i <= days; i++) {
+      const d = ym + "-" + String(i).padStart(2, "0"), past = d < t, off = isBusy(d);
+      const sel = start && (d === start || (end && d > start && d < end) || d === end);
+      const cls = ["cal-d", past ? "past" : off ? "off" : "free", sel ? "sel" : "", d === start ? "s" : "", d === end ? "e" : ""].join(" ");
+      // a booked night can still be picked as a checkout day
+      const canEnd = start && !end && d > start && rangeFree(start, d);
+      const dis = past || (off && !canEnd);
+      h += `<button type="button" class="${cls}" data-d="${d}" ${dis ? "disabled" : ""} aria-label="${fmt(d)}${off ? ", booked" : ""}">${i}</button>`;
     }
-    refresh();
+    return h + "</div></div>";
   }
-
-  onAuthStateChanged(auth, (u) => { user = u; renderVerify(); });
-  finishEmailLink().catch(() => setStatus("bad", "That verification link has expired. Please request a new one."));
-  busyFor(room).then((b) => { busy = b; checkDates(); }).catch(() => { busy = []; checkDates(); });
-
-  el.querySelector("form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const f = form();
-    if (!datesOk || !user || !user.emailVerified) return;
-    if (f.name.length < 2 || f.phone.replace(/\D/g, "").length < 10) { setStatus("bad", "Please add your name and a 10-digit WhatsApp number."); return; }
-    $("bk-send").disabled = true; setStatus("", "Sending…");
-    try {
-      const ref = await createRequest(user, f);
-      try { localStorage.removeItem(PKEY); } catch (e) {}
-      if (window.gtag) gtag("event", "booking_request", { room });
-      const msg = `Hi, I sent a booking request for the ${roomName(room)} at Mahadev Niwas.\nCheck-in: ${f.checkin}\nCheck-out: ${f.checkout}\nGuests: ${f.guests}\nName: ${f.name}\nRef: ${ref.id}`;
-      el.innerHTML = `<div class="bk-done"><b>Request received.</b><p>Reference <code>${ref.id}</code>. We'll confirm availability and price on WhatsApp and send you a payment link (full amount by UPI). To speed it up, send us this request now:</p>
-        <a class="btn btn-brass" target="_blank" rel="noopener" href="https://wa.me/919876954987?text=${encodeURIComponent(msg)}">Send on WhatsApp</a></div>`;
-    } catch (err) { setStatus("bad", "Could not send the request. Please try again or message us on WhatsApp."); refresh(); }
+  function render() {
+    $("cal-months").innerHTML = month(view) + month(monthAdd(view, 1));
+    $("cal-prev").disabled = view <= t.slice(0, 7);
+    const g = $("cal-g").value, ab = `https://www.airbnb.co.in/rooms/${AIRBNB[room]}`;
+    if (start && end) {
+      const n = nights(start, end);
+      $("cal-sum").innerHTML = `<b>${fmt(start)} → ${fmt(end)}</b> · ${n} night${n > 1 ? "s" : ""} · <button type="button" class="linkbtn" id="cal-clear">Change dates</button>`;
+      $("cal-clear").onclick = () => { start = end = null; render(); };
+      $("go-ab").href = `${ab}?check_in=${start}&check_out=${end}&adults=${g}`;
+      $("go-wa").href = `https://wa.me/${WA}?text=` + encodeURIComponent(`Hi, I'd like to book the ${roomName(room)} at Mahadev Niwas.\nCheck-in: ${fmt(start)}\nCheck-out: ${fmt(end)} (${n} night${n > 1 ? "s" : ""})\nGuests: ${g}\nIs it available?`);
+      $("cal-help").textContent = "Dates selected";
+    } else {
+      $("cal-sum").textContent = start ? `Check-in ${fmt(start)}. Now tap your check-out date.` : "Tap your check-in date.";
+      $("go-ab").href = `${ab}?adults=${g}`;
+      $("go-wa").href = `https://wa.me/${WA}?text=` + encodeURIComponent(`Hi, I'd like to book the ${roomName(room)} at Mahadev Niwas. Which dates are free?`);
+      $("cal-help").textContent = busy.loaded ? "Live availability" : "Loading availability…";
+    }
+  }
+  $("cal-months").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-d]"); if (!b) return;
+    const d = b.dataset.d;
+    if (!start || end || d <= start) { if (!isBusy(d)) { start = d; end = null; } }
+    else if (rangeFree(start, d)) end = d;
+    else { start = isBusy(d) ? null : d; end = null; }
+    render();
   });
+  $("cal-prev").onclick = () => { view = monthAdd(view, -1); render(); };
+  $("cal-next").onclick = () => { view = monthAdd(view, 1); render(); };
+  $("cal-g").onchange = render;
+  $("go-ab").addEventListener("click", () => { if (window.gtag) gtag("event", "airbnb_click", { room, dates: !!(start && end) }); });
+  $("go-wa").addEventListener("click", () => { if (window.gtag) gtag("event", "whatsapp_click", { page: "room-" + room, dates: !!(start && end) }); });
+  render();
+  busyFor(room).then((b) => { busy = b; }).catch(() => { busy = []; }).finally(() => { busy.loaded = true; render(); });
 }
-function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
