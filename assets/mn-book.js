@@ -23,7 +23,7 @@ function init() {
     </div>
     <div class="bk-verify" id="bk-verify"></div>
     <button class="btn btn-brass" id="bk-send" type="submit" disabled>Send booking request</button>
-    <p class="muted bk-note">No payment now. We confirm on WhatsApp, then you pay a ${RULES.advancePct}% advance by UPI to hold the room. <a href="/booking-policy">Booking policy</a>.</p>
+    <p class="muted bk-note">No payment now. We confirm on WhatsApp, then you pay the full amount by UPI to hold the room. Bookings are non-refundable. <a href="/booking-policy">Booking policy</a>.</p>
   </form>`;
   const $ = (id) => document.getElementById(id);
   if (pending.guests) $("bk-g").value = pending.guests;

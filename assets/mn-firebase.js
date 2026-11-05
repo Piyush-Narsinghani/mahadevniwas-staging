@@ -27,7 +27,7 @@ export const ROOMS = [
   { no: "5", name: "Compact AC Room" }, { no: "1", name: "Quiet AC Suite" }, { no: "2", name: "Budget Fan Room" }
 ];
 // Draft rules for staging, to be finalised by the owner.
-export const RULES = { advancePct: 50, freeCancelDays: 3, maxGuests: 3, draft: true };
+export const RULES = { advancePct: 100, refundable: false, maxGuests: 3 };
 export const roomName = (no) => (ROOMS.find((r) => r.no === String(no)) || { name: "Room " + no }).name;
 
 export const iso = (d) => d.toISOString().slice(0, 10);
@@ -37,9 +37,12 @@ export const nights = (a, b) => Math.round((new Date(b) - new Date(a)) / 864e5);
 const overlaps = (a1, a2, b1, b2) => a1 < b2 && b1 < a2;
 
 // Availability (public, dates only)
+export async function airbnbBusy() {
+  try { const r = await fetch("/data/airbnb-busy.json", { cache: "no-store" }); return r.ok ? (await r.json()).blocks || [] : []; } catch (e) { return []; }
+}
 export async function busyFor(room) {
-  const snap = await getDocs(query(collection(db, "busy"), where("room", "==", String(room))));
-  return snap.docs.map((d) => d.data());
+  const [snap, ab] = await Promise.all([getDocs(query(collection(db, "busy"), where("room", "==", String(room)))), airbnbBusy()]);
+  return snap.docs.map((d) => d.data()).concat(ab.filter((b) => b.room === String(room)));
 }
 export function clash(busy, checkin, checkout) { return busy.filter((b) => overlaps(checkin, checkout, b.from, b.to)); }
 

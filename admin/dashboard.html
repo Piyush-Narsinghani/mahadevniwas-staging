@@ -17,7 +17,7 @@
 </div></header>
 <div class="kpis" style="max-width:1180px;margin:16px auto;padding-inline:max(16px,env(safe-area-inset-left,0px))">
   <div class="kpi"><b id="k-req">–</b><span>New requests</span></div>
-  <div class="kpi"><b id="k-conf">–</b><span>Confirmed, advance pending</span></div>
+  <div class="kpi"><b id="k-conf">–</b><span>Confirmed, payment pending</span></div>
   <div class="kpi"><b id="k-paid">–</b><span>Paid, upcoming</span></div>
   <div class="kpi"><b id="k-in">–</b><span>Check-ins next 7 days</span></div>
 </div>
@@ -51,7 +51,7 @@
       <label for="a-g">Guests<select id="a-g"><option>1</option><option selected>2</option><option>3</option></select></label>
       <label for="a-name">Guest name<input id="a-name" required></label>
       <label for="a-phone">Phone<input id="a-phone" type="tel" required></label>
-      <label for="a-note">Note<input id="a-note" placeholder="Advance, ID seen…"></label>
+      <label for="a-note">Note<input id="a-note" placeholder="Paid, ID seen…"></label>
       <button class="btn btn-brass" type="submit">Save booking</button>
     </form>
     <p class="muted" id="a-msg" aria-live="polite"></p>
@@ -69,12 +69,13 @@
   </section>
 </main>
 <script type="module">
-import { auth, db, ADMIN_EMAIL, ROOMS, roomName, today, addDays, nights, signOut, onAuthStateChanged,
+import { airbnbBusy, auth, db, ADMIN_EMAIL, ROOMS, roomName, today, addDays, nights, signOut, onAuthStateChanged,
   collection, doc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp } from "/assets/mn-firebase.js";
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const fmt = (s) => new Date(s + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" });
-let bookings = [], busy = [], blocks = [];
+let bookings = [], busyFs = [], abBusy = [], busy = [], blocks = [];
+const mergeBusy = () => { busy = busyFs.concat(abBusy.map((b, i) => ({ id: "ab_" + i, ...b }))); };
 if (location.hostname === "mahadevniwas.com") $("env").hidden = true;
 
 onAuthStateChanged(auth, (u) => {
@@ -92,7 +93,8 @@ $("c-from").value = today(); $("a-in").value = today(); $("a-out").value = addDa
 
 function start() {
   onSnapshot(query(collection(db, "bookings"), orderBy("checkin")), (s) => { bookings = s.docs.map((d) => ({ id: d.id, ...d.data() })); render(); }, (e) => $("rows").innerHTML = `<tr><td colspan="7" class="empty">Could not load bookings: ${esc(e.message)}</td></tr>`);
-  onSnapshot(collection(db, "busy"), (s) => { busy = s.docs.map((d) => ({ id: d.id, ...d.data() })); render(); });
+  onSnapshot(collection(db, "busy"), (s) => { busyFs = s.docs.map((d) => ({ id: d.id, ...d.data() })); mergeBusy(); render(); });
+  const loadAb = () => airbnbBusy().then((a) => { abBusy = a; mergeBusy(); render(); }); loadAb(); setInterval(loadAb, 5 * 60 * 1000);
   onSnapshot(collection(db, "blocks"), (s) => { blocks = s.docs.map((d) => ({ id: d.id, ...d.data() })); renderBlocks(); render(); });
 }
 const overl = (a1, a2, b1, b2) => a1 < b2 && b1 < a2;
@@ -112,7 +114,7 @@ function render() {
     const wa = "https://wa.me/" + String(b.phone).replace(/\D/g, "").replace(/^(\d{10})$/, "91$1");
     const acts = {
       requested: `<button class="btn btn-sm btn-brass" data-a="confirm" data-id="${b.id}">Confirm</button><button class="btn btn-sm" data-a="decline" data-id="${b.id}">Decline</button>`,
-      confirmed: `<button class="btn btn-sm btn-brass" data-a="paid" data-id="${b.id}">Mark advance paid</button><button class="btn btn-sm" data-a="cancel" data-id="${b.id}">Cancel</button>`,
+      confirmed: `<button class="btn btn-sm btn-brass" data-a="paid" data-id="${b.id}">Mark paid in full</button><button class="btn btn-sm" data-a="cancel" data-id="${b.id}">Cancel</button>`,
       paid: `<button class="btn btn-sm" data-a="cancel" data-id="${b.id}">Cancel</button>`
     }[b.status] || `<button class="btn btn-sm" data-a="reopen" data-id="${b.id}">Reopen</button>`;
     return `<tr><td><span class="pill s-${esc(b.status)}">${esc(b.status)}</span></td><td>${esc(roomName(b.room))}</td>

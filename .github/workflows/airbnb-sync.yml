@@ -1,0 +1,28 @@
+name: Airbnb calendar sync
+on:
+  schedule:
+    - cron: "17 * * * *"   # every hour
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: airbnb-sync
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Sync calendars
+        env:
+          AIRBNB_ICAL: ${{ secrets.AIRBNB_ICAL }}
+        run: python scripts/airbnb_sync.py
+      - name: Commit changes
+        run: |
+          git config user.name "calendar-sync"
+          git config user.email "calendar-sync@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet || (git commit -m "Calendar sync" && git push)
