@@ -41,7 +41,11 @@ def airbnb_to_site():
     if not raw:
         print("AIRBNB_ICAL secret not set; skipping Airbnb import")
         return None
-    links = json.loads(raw)
+    # Accepts JSON {"3": "url"} or one "room url" pair per line, e.g. "3 https://www.airbnb.../ical/...ics?s=..."
+    if raw.startswith("{"):
+        links = json.loads(raw)
+    else:
+        links = dict(l.split(None, 1) for l in raw.splitlines() if l.strip())
     blocks, errors = [], []
     for room, url in links.items():
         try:
