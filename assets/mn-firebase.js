@@ -38,7 +38,7 @@ const overlaps = (a1, a2, b1, b2) => a1 < b2 && b1 < a2;
 
 // Availability (public, dates only)
 export async function airbnbBusy() {
-  try { const r = await fetch("/data/airbnb-busy.json", { cache: "no-store" }); return r.ok ? (await r.json()).blocks || [] : []; } catch (e) { return []; }
+  try { const r = await fetch("https://raw.githubusercontent.com/Piyush-Narsinghani/mahadevniwas-staging/main/data/airbnb-busy.json", { cache: "no-store" }); return r.ok ? (await r.json()).blocks || [] : []; } catch (e) { return []; }
 }
 export async function busyFor(room) {
   const [snap, ab] = await Promise.all([getDocs(query(collection(db, "busy"), where("room", "==", String(room)))), airbnbBusy()]);

@@ -1,6 +1,6 @@
 // Availability calendar for room pages. Usage: <div id="book-widget" data-room="3"></div>
 // Guests pick dates on a live calendar (Airbnb + direct bookings), then book on Airbnb or WhatsApp.
-import { roomName, today, addDays, nights, busyFor } from "/assets/mn-firebase.js?v=2";
+import { roomName, today, addDays, nights, busyFor } from "/assets/mn-firebase.js?v=3";
 
 const AIRBNB = { "3": "1337026475284159269", "4": "1337056930228579269", "6": "1337043712766653017", "5": "1337059087112427101", "1": "1339101345497451595", "2": "1339104264281029729" };
 const WA = "919876954987";

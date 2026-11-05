@@ -18,7 +18,7 @@
   <p class="err" id="err" aria-live="polite"></p>
 </main>
 <script type="module">
-import { auth, ADMIN_EMAIL, google, signOut, onAuthStateChanged } from "/assets/mn-firebase.js?v=2";
+import { auth, ADMIN_EMAIL, google, signOut, onAuthStateChanged } from "/assets/mn-firebase.js?v=3";
 const err = document.getElementById("err");
 onAuthStateChanged(auth, async (u) => {
   if (!u) return;
