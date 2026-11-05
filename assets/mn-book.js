@@ -80,7 +80,7 @@ function init() {
       try { localStorage.removeItem(PKEY); } catch (e) {}
       if (window.gtag) gtag("event", "booking_request", { room });
       const msg = `Hi, I sent a booking request for the ${roomName(room)} at Mahadev Niwas.\nCheck-in: ${f.checkin}\nCheck-out: ${f.checkout}\nGuests: ${f.guests}\nName: ${f.name}\nRef: ${ref.id}`;
-      el.innerHTML = `<div class="bk-done"><b>Request received.</b><p>Reference <code>${ref.id}</code>. We'll confirm on WhatsApp. To speed it up, send us this request now:</p>
+      el.innerHTML = `<div class="bk-done"><b>Request received.</b><p>Reference <code>${ref.id}</code>. We'll confirm availability and price on WhatsApp and send you a payment link (full amount by UPI). To speed it up, send us this request now:</p>
         <a class="btn btn-brass" target="_blank" rel="noopener" href="https://wa.me/919876954987?text=${encodeURIComponent(msg)}">Send on WhatsApp</a></div>`;
     } catch (err) { setStatus("bad", "Could not send the request. Please try again or message us on WhatsApp."); refresh(); }
   });

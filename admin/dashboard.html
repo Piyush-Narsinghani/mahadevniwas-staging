@@ -114,12 +114,12 @@ function render() {
     const wa = "https://wa.me/" + String(b.phone).replace(/\D/g, "").replace(/^(\d{10})$/, "91$1");
     const acts = {
       requested: `<button class="btn btn-sm btn-brass" data-a="confirm" data-id="${b.id}">Confirm</button><button class="btn btn-sm" data-a="decline" data-id="${b.id}">Decline</button>`,
-      confirmed: `<button class="btn btn-sm btn-brass" data-a="paid" data-id="${b.id}">Mark paid in full</button><button class="btn btn-sm" data-a="cancel" data-id="${b.id}">Cancel</button>`,
+      confirmed: `<button class="btn btn-sm" data-a="paylink" data-id="${b.id}">Send payment link</button><button class="btn btn-sm btn-brass" data-a="paid" data-id="${b.id}">Mark paid in full</button><button class="btn btn-sm" data-a="cancel" data-id="${b.id}">Cancel</button>`,
       paid: `<button class="btn btn-sm" data-a="cancel" data-id="${b.id}">Cancel</button>`
     }[b.status] || `<button class="btn btn-sm" data-a="reopen" data-id="${b.id}">Reopen</button>`;
     return `<tr><td><span class="pill s-${esc(b.status)}">${esc(b.status)}</span></td><td>${esc(roomName(b.room))}</td>
       <td>${fmt(b.checkin)} → ${fmt(b.checkout)}<br><span class="muted">${nights(b.checkin, b.checkout)} nights · ${esc(b.guests)} guests</span>${c.length ? `<span class="warn-line">⚠ Clashes with ${c.map((x) => x.kind).join(", ")}</span>` : ""}</td>
-      <td class="wrap"><b>${esc(b.name)}</b><br><span class="muted">${esc(b.source)}${b.note ? " · " + esc(b.note) : ""}</span></td>
+      <td class="wrap"><b>${esc(b.name)}</b><br><span class="muted">${esc(b.source)}${b.amount ? " · ₹" + Number(b.amount).toLocaleString("en-IN") : ""}${b.note ? " · " + esc(b.note) : ""}</span></td>
       <td><a href="${wa}" target="_blank" rel="noopener">${esc(b.phone)}</a><br><span class="muted">${esc(b.email || "")}</span></td>
       <td>${b.source === "website" ? "✓ " + esc(b.verifiedBy === "google.com" ? "Google" : "Email") : "Host added"}</td>
       <td><div class="acts">${acts}</div></td></tr>`;
@@ -130,6 +130,15 @@ $("f-status").onchange = render; $("f-q").oninput = render; $("c-from").onchange
 
 async function setStatus(id, status) {
   const b = bookings.find((x) => x.id === id); if (!b) return;
+  if (status === "paylink") {
+    const am = prompt("Total amount for " + b.name + " (₹, full stay)", b.amount || "");
+    if (!am || !/^\d+(\.\d{1,2})?$/.test(am.trim())) return;
+    await updateDoc(doc(db, "bookings", id), { amount: Number(am.trim()), updated: serverTimestamp() });
+    const link = location.origin + "/pay?ref=" + id + "&am=" + am.trim();
+    const msg = `Hi ${b.name}, your booking at Mahadev Niwas is available ✅\n${roomName(b.room)}\n${b.checkin} to ${b.checkout} (${nights(b.checkin, b.checkout)} nights, ${b.guests} guests)\nTotal: ₹${Number(am).toLocaleString("en-IN")}\n\nPlease pay the full amount by UPI to confirm (non-refundable):\n${link}\nUPI ID: 9876954987@pthdfc\n\nSend the payment screenshot here once done. Har Har Mahadev 🙏`;
+    window.open("https://wa.me/" + String(b.phone).replace(/\D/g, "").replace(/^(\d{10})$/, "91$1") + "?text=" + encodeURIComponent(msg), "_blank");
+    return;
+  }
   if (["confirm", "paid"].includes(status) && clashes(b).length && !confirmClash()) return;
   const map = { confirm: "confirmed", paid: "paid", decline: "declined", cancel: "cancelled", reopen: "requested" };
   await updateDoc(doc(db, "bookings", id), { status: map[status], updated: serverTimestamp() });

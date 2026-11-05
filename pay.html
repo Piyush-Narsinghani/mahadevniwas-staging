@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pay for your booking | Mahadev Niwas</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant:wght@500;600&family=Manrope:wght@400;600&display=swap">
+<style>
+:root{--bg:#f7f6f3;--surface:#fff;--ink:#151a24;--muted:#5b6170;--line:#e3e0d8;--night:#0e1525;--on-night:#f3efe6;--on-night-muted:#b9b5ab;--brass:#b7883b;--brass-hi:#d9ae62;--brass-ink:#1a1306;--brass-text:#86601f;
+--display:"Cormorant","Cormorant Garamond",Georgia,serif;--body:"Manrope","Segoe UI",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c111c;--surface:#141b2a;--ink:#ece8de;--muted:#a8a69f;--line:#262f42;--night:#070b14;--brass:#d2a457;--brass-hi:#e6bf78;--brass-text:#e0b56a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0c111c;--surface:#141b2a;--ink:#ece8de;--muted:#a8a69f;--line:#262f42;--night:#070b14;--brass:#d2a457;--brass-hi:#e6bf78;--brass-text:#e0b56a;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.7 var(--body);-webkit-font-smoothing:antialiased}
+a{color:inherit}a:focus-visible{outline:2px solid var(--brass);outline-offset:3px;border-radius:6px}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px}
+header{background:var(--night);color:var(--on-night)}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:14px}
+.brand{text-decoration:none;font:600 1.4rem/1 var(--display)}.brand span{color:var(--brass-hi);font-size:1rem;margin-left:8px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;font:600 .88rem/1 var(--body);text-decoration:none;border:1px solid transparent}
+.btn-brass{background:var(--brass);color:var(--brass-ink)}.btn{white-space:nowrap}@media(max-width:440px){.brand span{display:none}}.btn-brass:hover{background:var(--brass-hi)}
+.btn-ghost{border-color:var(--line);background:var(--surface)}.btn-ghost:hover{border-color:var(--brass)}
+.hero{background:var(--night);color:var(--on-night);padding-block:36px 48px}
+.eyebrow{font:600 .74rem/1 var(--body);letter-spacing:.22em;text-transform:uppercase;color:var(--brass-hi);margin:0 0 14px}
+h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.1;margin:0;text-wrap:balance}
+h1{font-size:clamp(2rem,5vw,3rem);font-weight:500}h2{font-size:clamp(1.5rem,3vw,1.9rem);margin-top:44px}h3{font-size:1.25rem;margin-top:26px}
+.hero p.lede{color:var(--on-night-muted);margin-top:14px;max-width:56ch}
+main p,main li{color:var(--ink)}main p{margin:12px 0}main ul,main ol{padding-left:1.2em}main li{margin:6px 0}
+.muted{color:var(--muted)!important;font-size:.9rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-top:18px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:18px}
+.facts div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.facts b{display:block;font:600 1.5rem/1.1 var(--display);color:var(--brass-text)}.facts span{font-size:.85rem;color:var(--muted)}
+.cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+details{border-top:1px solid var(--line);padding:12px 0}summary{cursor:pointer;font-weight:600}
+footer{background:var(--night);color:var(--on-night-muted);margin-top:56px;padding-block:32px;font-size:.9rem}
+footer a{color:var(--on-night)}footer .links{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:10px}
+.crumb{font-size:.82rem;color:var(--on-night-muted);margin-bottom:14px}.crumb a{color:var(--on-night-muted)}
+
+.brand{align-items:center!important}
+.brand-logo{width:44px;height:44px;border-radius:50%;flex:0 0 auto;margin-right:2px;box-shadow:0 0 0 1px rgba(232,182,92,.35)}
+@media(max-width:480px){.brand-logo{width:36px;height:36px}}
+
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:22px}
+.gallery img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;display:block;background:var(--line)}
+.gallery a:first-child{grid-column:1/-1}.gallery a:first-child img{aspect-ratio:16/9}
+.specs{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;margin-top:18px}
+.specs dt{color:var(--muted);font-size:.9rem}.specs dd{margin:0;font-weight:600}
+.related{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:14px}
+.related a{display:block;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-decoration:none;font-weight:600}
+.related a:hover{border-color:var(--brass)}.related small{display:block;font-weight:400;color:var(--muted)}
+table.t{width:100%;border-collapse:collapse;margin-top:14px;font-size:.95rem}table.t th,table.t td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+table.t th{color:var(--muted);font-weight:600}.tw{overflow-x:auto}
+
+.pay{display:grid;grid-template-columns:minmax(0,1fr);gap:18px;margin-top:22px}
+@media(min-width:700px){.pay{grid-template-columns:260px minmax(0,1fr)}}
+.qr{background:#fff;border-radius:16px;padding:14px;border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:8px}
+.qr img,.qr canvas{width:220px;height:220px;max-width:100%}.qr small{color:#5b6170}
+.amt{font:600 2.4rem/1 var(--display);color:var(--brass-text)}
+.upi{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.upi code{font-size:1.05rem;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+</style>
+</head>
+<body>
+<header><div class="wrap nav"><a class="brand" href="/" style="display:inline-flex;align-items:center;gap:10px"><img class="brand-logo" src="/images/logo-112.webp" width="44" height="44" alt="Mahadev Niwas logo" decoding="async">Mahadev Niwas<span>महादेव निवास</span></a><a class="btn btn-brass" href="/#rooms">See rooms</a></div></header>
+<section class="hero"><div class="wrap">
+<p class="eyebrow">Secure your room</p>
+<h1>Pay for your booking</h1>
+<p class="lede">Pay the full amount by UPI to confirm your stay. Direct bookings are non-refundable.</p>
+</div></section>
+<main class="wrap">
+<div class="pay">
+  <div class="qr"><div id="qr"><img src="/assets/upi-qr.png" alt="UPI QR code for Mahadev Niwas" width="220" height="220"></div><small>Scan with any UPI app</small></div>
+  <div>
+    <p class="muted" id="ref-line" hidden>Booking reference <code id="ref"></code></p>
+    <p id="amt-line" hidden>Amount to pay<br><span class="amt" id="amt"></span></p>
+    <p>UPI ID</p>
+    <div class="upi"><code id="upi">9876954987@pthdfc</code><button class="btn btn-ghost" type="button" id="copy">Copy UPI ID</button></div>
+    <p class="muted" style="margin-top:6px">Payee name shown in your UPI app: <b>Gaurav Mishra</b> (Mahadev Niwas).</p>
+    <div class="cta"><a class="btn btn-brass" id="open" href="upi://pay?pa=9876954987@pthdfc&amp;pn=Mahadev%20Niwas&amp;cu=INR">Pay with UPI app</a></div>
+    <h2>After you pay</h2>
+    <ol><li>Send the payment screenshot to us on WhatsApp with your booking reference.</li>
+    <li>We mark your booking as paid and send your check-in details.</li></ol>
+    <div class="cta"><a class="btn btn-ghost" id="wa" target="_blank" rel="noopener" href="https://wa.me/919876954987">Send screenshot on WhatsApp</a></div>
+    <p class="muted">Please check your dates before paying. See our <a href="/booking-policy">booking policy</a>.</p>
+  </div>
+</div>
+</main>
+<footer><div class="wrap">
+<p><b style="color:var(--on-night)">Mahadev Niwas Homestay</b> · N-16/95A-29B, Ganpati Dham Colony, Kolhua, Vinayaka, Kamachha, Varanasi 221010 · <a href="tel:+919876954987">+91 98769 54987</a></p>
+<p style="margin-top:8px">Rooms: <a href="/king-ac-suite-varanasi">King AC Suite</a> · <a href="/family-ac-suite-varanasi">Family AC Suite</a> · <a href="/roomy-ac-suite-varanasi">Roomy AC Suite</a> · <a href="/compact-ac-room-varanasi">Compact AC Room</a> · <a href="/quiet-ac-suite-varanasi">Quiet AC Suite</a> · <a href="/budget-fan-room-varanasi">Budget Fan Room</a></p>
+<div class="links"><a href="/">Home</a><a href="/homestay-with-kitchen-varanasi">Homestay with a kitchen</a><a href="/family-elderly-stay-varanasi">Families and elderly guests</a><a href="/budget-rooms-varanasi">Budget rooms in Varanasi</a><a href="/long-stays">Long and monthly stays</a><a href="/kashi-vishwanath-darshan-timings">Kashi Vishwanath timings</a><a href="/varanasi-2-day-itinerary">2-day Varanasi itinerary</a><a href="/varanasi-3-day-itinerary">3-day Varanasi itinerary</a><a href="/dev-deepawali-2026">Dev Deepawali 2026</a><a href="https://maps.google.com/?cid=7282903325096626393" target="_blank" rel="noopener">Google Maps</a></div>
+</div></footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+  var p=new URLSearchParams(location.search), ref=(p.get('ref')||'').replace(/[^\w-]/g,'').slice(0,40), am=(p.get('am')||'').replace(/[^\d.]/g,'');
+  var uri='upi://pay?pa=9876954987@pthdfc&pn=Mahadev%20Niwas&cu=INR'+(am?'&am='+am:'')+(ref?'&tn='+encodeURIComponent('Mahadev Niwas '+ref):'');
+  if(ref){document.getElementById('ref').textContent=ref;document.getElementById('ref-line').hidden=false;}
+  if(am){document.getElementById('amt').textContent='\u20b9'+Number(am).toLocaleString('en-IN');document.getElementById('amt-line').hidden=false;}
+  document.getElementById('open').href=uri;
+  if((am||ref)&&window.QRCode){var q=document.getElementById('qr');q.innerHTML='';new QRCode(q,{text:uri,width:220,height:220,colorDark:'#0e1525',colorLight:'#ffffff'});}
+  document.getElementById('wa').href='https://wa.me/919876954987?text='+encodeURIComponent('Hi, I have paid for my Mahadev Niwas booking'+(ref?' (ref '+ref+')':'')+(am?', \u20b9'+am:'')+'. Sharing the screenshot.');
+  document.getElementById('copy').onclick=function(){var t='9876954987@pthdfc',b=this;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){b.textContent='Copied';},function(){var r=document.createRange();r.selectNodeContents(document.getElementById('upi'));var s=getSelection();s.removeAllRanges();s.addRange(r);});};
+})();
+</script>
+</body>
+</html>
