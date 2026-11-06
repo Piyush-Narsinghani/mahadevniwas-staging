@@ -361,6 +361,30 @@ footer a{color:var(--on-night)}
 @media(max-width:480px){.brand-logo{width:36px;height:36px}.brand b{white-space:nowrap;font-size:1.3rem}header .brand span[lang="hi"]{display:none}}
 .room-more{display:inline-block;margin-top:12px;font-size:.92rem;font-weight:600;text-decoration:underline;text-underline-offset:3px;color:inherit}
 </style>
+<style id="mn-polish">
+/* gallery: keep photo tiles at their aspect ratio (height attr was forcing 600px) */
+.gallery img{height:auto}
+@media(max-width:640px){.gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}}
+/* directions list reads left-aligned */
+.rows.steps li{justify-content:flex-start}
+.rows.steps li span,.rows.steps li span:last-child{font-weight:400;text-align:left}
+/* table first column never wraps */
+th:first-child,td:first-child{white-space:nowrap}
+/* legibility + comfortable tap targets */
+.hr span{font-size:.72rem}
+.room-more{display:inline-flex;align-items:center;min-height:40px}
+footer p a{padding-block:3px}
+/* hero photo: no hard seam at its bottom edge */
+.hero-bg{overflow:hidden}
+.hero-bg::after{z-index:1;bottom:-1px}
+.hero>.wrap{z-index:2}
+/* sticky mobile bar: only after the hero buttons scroll away, and never covers content */
+@media(max-width:720px){
+  .mbar.off{transform:translateY(115%);pointer-events:none}
+  body:has(.mbar){padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+  .hero-actions .btn{min-height:46px}
+}
+</style>
 </head>
 <body>
 
@@ -618,7 +642,7 @@ footer a{color:var(--on-night)}
     <div class="loc">
       <div class="reveal">
         <h3 data-hi="हम तक कैसे पहुँचें">हम तक कैसे पहुँचें</h3>
-        <ol class="rows" style="list-style:none;margin-top:12px">
+        <ol class="rows steps" style="list-style:none;margin-top:12px">
           <li><span data-hi="कैब में <b>कमच्छा, सूर्या विशाल कॉम्प्लेक्स</b> बताएँ।">कैब में <b>कमच्छा, सूर्या विशाल कॉम्प्लेक्स</b> बताएँ।</span></li>
           <li><span data-hi="विन्सम विनायक के पास, रेवत अपार्टमेंट-2 के सामने।">विन्सम विनायक के पास, रेवत अपार्टमेंट-2 के सामने।</span></li>
           <li><span data-hi="रास्ता न मिले तो कॉल या WhatsApp करें, हम लोकेशन भेज देंगे।">रास्ता न मिले तो कॉल या WhatsApp करें, हम लोकेशन भेज देंगे।</span></li>
@@ -779,5 +803,6 @@ footer a{color:var(--on-night)}
   document.querySelectorAll('a[href^="https://wa.me"]').forEach(function(a){a.addEventListener('click',function(){if(window.gtag)gtag('event','whatsapp_click');});});
 })();
 </script>
+<script id="mn-mbar">(()=>{const b=document.querySelector('.mbar'),h=document.querySelector('.hero-actions');if(!b||!h||!('IntersectionObserver'in window))return;b.classList.add('off');new IntersectionObserver(([e])=>b.classList.toggle('off',e.isIntersecting||e.boundingClientRect.top>0)).observe(h)})();</script>
 </body>
 </html>

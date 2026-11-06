@@ -60,6 +60,30 @@ table.t th{color:var(--muted);font-weight:600}.tw{overflow-x:auto}
 .amt{font:600 2.4rem/1 var(--display);color:var(--brass-text)}
 .upi{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.upi code{font-size:1.05rem;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
 </style>
+<style id="mn-polish">
+/* gallery: keep photo tiles at their aspect ratio (height attr was forcing 600px) */
+.gallery img{height:auto}
+@media(max-width:640px){.gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}}
+/* directions list reads left-aligned */
+.rows.steps li{justify-content:flex-start}
+.rows.steps li span,.rows.steps li span:last-child{font-weight:400;text-align:left}
+/* table first column never wraps */
+th:first-child,td:first-child{white-space:nowrap}
+/* legibility + comfortable tap targets */
+.hr span{font-size:.72rem}
+.room-more{display:inline-flex;align-items:center;min-height:40px}
+footer p a{padding-block:3px}
+/* hero photo: no hard seam at its bottom edge */
+.hero-bg{overflow:hidden}
+.hero-bg::after{z-index:1;bottom:-1px}
+.hero>.wrap{z-index:2}
+/* sticky mobile bar: only after the hero buttons scroll away, and never covers content */
+@media(max-width:720px){
+  .mbar.off{transform:translateY(115%);pointer-events:none}
+  body:has(.mbar){padding-bottom:calc(70px + env(safe-area-inset-bottom,0px))}
+  .hero-actions .btn{min-height:46px}
+}
+</style>
 </head>
 <body>
 <header><div class="wrap nav"><a class="brand" href="/" style="display:inline-flex;align-items:center;gap:10px"><img class="brand-logo" src="/images/logo-112.webp" width="44" height="44" alt="Mahadev Niwas logo" decoding="async">Mahadev Niwas<span>महादेव निवास</span></a><a class="btn btn-brass" href="/#rooms">See rooms</a></div></header>
